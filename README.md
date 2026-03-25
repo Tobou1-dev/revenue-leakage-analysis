@@ -1,74 +1,190 @@
 # Restaurant Revenue Protection Model
-## SQL Analysis Layer — Google BigQuery
 
-A revenue protection analytics system that quantifies the financial cost of operational friction in a high-volume restaurant environment.
+## Quantifying Revenue Loss from Payment Friction
 
-## The Finding
+A revenue protection system designed to identify and eliminate hidden revenue leakage in high-volume operations.
 
-**Saturday peak shifts were losing ₦13.3M monthly** due to payment-stage bottlenecks — customers abandoning orders after waiting beyond the 35-minute threshold in a Post-Pay workflow.
+---
 
-A transition to a Pre-Pay model was projected to recover **28% of realized monthly revenue** without increasing customer acquisition costs.
+## Executive Summary
+
+This analysis uncovered a structural revenue leak caused by payment-stage friction in a high-volume restaurant environment.
+
+* **Actual Monthly Revenue (Post-Pay):** ₦46M
+* **Potential Monthly Revenue (Pre-Pay):** ₦59M
+* **Revenue Leakage:** **₦13M/month**
+* **Recovery Opportunity:** **+28% revenue without increasing demand**
+
+> The business is not demand-constrained.
+> It is **conversion-constrained at the point of payment**.
+
+---
 
 ## The Core Insight
 
-The analysis proved this was a **process problem, not a people problem**. Revenue leakage was consistent across all staff members — meaning no amount of individual effort could fix a fundamentally broken workflow.
+> **Revenue is only realized when payment is completed.**
 
-## SQL Files
+Customers were completing the service experience but abandoning transactions due to excessive wait times at checkout.
 
-| File | Purpose |
-|---|---|
-| `01_revenue_impact_analysis.sql` | Core revenue impact table joining fact orders with calendar metadata |
-| `02_peak_shift_analysis.sql` | Identifies Saturday peak shifts as primary leakage source |
-| `03_staff_and_wait_time_analysis.sql` | Staff consistency analysis + 35-minute cliff + menu item contribution |
+This is not a demand problem.
+This is not a staffing problem.
 
-## Data Architecture
+> **This is a system design failure.**
 
-**Star Schema:**
+---
 
-```
-fact_simulation_orders (central fact table)
-├── calendar (date dimension — Day_Type, Daily_Order_Target)
-└── menu (item dimension — name, price, prep_time_base)
-```
+## The Problem
 
-**Key Columns:**
+Most operations optimize for:
 
-| Column | Description |
-|---|---|
-| `Scenario_A_Revenue` | Actual revenue captured (Post-Pay model) |
-| `Scenario_B_Revenue` | Potential revenue (Pre-Pay model) |
-| `Total_Wait_Mins` | End-to-end customer wait time |
-| `Is_Peak_Hour` | Boolean flag for peak shift identification |
-| `Day_Type` | Calendar dimension — Weekend/Weekday |
+* Order speed
+* Table turnover
+* Kitchen efficiency
 
-## Key Analytical Findings
+But ignore a critical constraint:
 
-**The 35-Minute Cliff:** Orders exceeding 35 minutes had an 80% higher probability of becoming unrealized revenue — identified as the critical abandonment threshold.
+> **A delayed payment system converts demand into lost revenue.**
 
-**Staff Consistency:** Revenue recovery rate was consistent across all staff members, confirming the workflow itself was the failure point — not individual performance.
+---
 
-**Peak Shift Concentration:** The majority of leakage was concentrated in Saturday dinner rush (7PM–9PM), enabling targeted intervention rather than wholesale operational redesign.
+## Business Impact Breakdown
 
-## Tech Stack
+| Metric                              | Value |
+| ----------------------------------- | ----- |
+| Ideal Daily Revenue (Pre-Pay)       | ₦8M   |
+| Actual Monthly Revenue (Post-Pay)   | ₦46M  |
+| Potential Monthly Revenue (Pre-Pay) | ₦59M  |
+| Monthly Revenue Lost                | ₦13M  |
+| Revenue Recovery Potential          | +28%  |
 
-| Layer | Tool |
-|---|---|
-| Data Simulation | Python (behavioral simulation with reneging logic) |
-| Data Warehouse | Google BigQuery |
-| SQL Analytics | BigQuery SQL |
-| Visualization | Power BI |
+---
 
-## Methodology Note
+## SQL Analysis Layer (Google BigQuery)
 
-This project uses synthetic data generated to simulate operational patterns in a high-volume dining environment. The simulation models customer reneging behavior — the probability of abandonment increasing exponentially beyond the 35-minute wait threshold.
+This repository contains the analytical layer used to quantify revenue loss and simulate recovery scenarios.
+
+### SQL Files
+
+| File                                  | Purpose                                                    |
+| ------------------------------------- | ---------------------------------------------------------- |
+| `01_revenue_impact_analysis.sql`      | Computes actual vs potential revenue (Post-Pay vs Pre-Pay) |
+| `02_peak_shift_analysis.sql`          | Identifies peak-hour revenue leakage concentration         |
+| `03_staff_and_wait_time_analysis.sql` | Validates system-level failure and abandonment thresholds  |
+
+---
+
+## Analytical Approach
+
+1. Defined **revenue realization point** (payment completion)
+2. Segmented orders by **total wait time**
+3. Modeled **abandonment risk beyond 35 minutes**
+4. Calculated:
+
+   * Actual revenue (Post-Pay)
+   * Potential revenue (Pre-Pay)
+5. Isolated **peak-hour concentration of losses**
+
+---
+
+## Key Findings
+
+### 1. The ₦13M Monthly Revenue Leak
+
+Revenue loss is driven by **uncompleted transactions**, not lack of demand.
+
+---
+
+### 2. The 35-Minute Cliff
+
+> Orders exceeding 35 minutes show an 80% higher abandonment probability.
+
+This is the operational tipping point where demand fails to convert into revenue.
+
+---
+
+### 3. Peak-Hour Concentration
+
+> The majority of losses occur during Saturday dinner rush (7PM–9PM).
+
+This enables targeted intervention rather than full operational overhaul.
+
+---
+
+### 4. System Failure, Not Staff Failure
+
+Revenue loss patterns were consistent across staff.
+
+> The constraint is embedded in the workflow — not execution quality.
+
+---
+
+## Decision Framework
+
+If:
+
+* Wait times exceed 30–35 minutes
+* Peak-hour order volume exceeds processing capacity
+
+Then:
+→ The Post-Pay model becomes **revenue-negative**
+
+**Recommended Action:**
+→ Transition to **Pre-Pay during peak hours** as a phased rollout
+
+---
 
 ## Strategic Recommendations
 
-1. **Workflow Pivot:** Transition to Pre-Pay model to decouple food preparation from financial risk
-2. **Peak-Mode Staffing:** Reallocate labor to order fulfillment during Saturday 7PM–9PM window
-3. **Kiosk Deployment:** Self-service terminals to handle Pre-Pay volume during peak periods
+### 1. Transition to Pre-Pay
+
+Capture revenue at order initiation to eliminate payment-stage risk.
+
+---
+
+### 2. Peak-Hour Optimization
+
+Reallocate staff during high-volume windows to reduce queue buildup.
+
+---
+
+### 3. Payment Infrastructure Upgrade
+
+Introduce kiosks or digital ordering to remove checkout bottlenecks.
+
+---
+
+## Tech Stack
+
+| Layer          | Tool                                              |
+| -------------- | ------------------------------------------------- |
+| Simulation     | Python (customer behavior & abandonment modeling) |
+| Data Warehouse | Google BigQuery                                   |
+| Analytics      | SQL                                               |
+| Visualization  | Power BI                                          |
+
+---
+
+## Methodology Note
+
+This project uses synthetic data to simulate real-world operational dynamics.
+
+Customer behavior was modeled using reneging logic, where abandonment probability increases sharply beyond a 35-minute wait threshold.
+
+---
+
+## Final Insight
+
+> **Most businesses focus on generating demand.**
+> **Few focus on capturing the demand they already have.**
+
+Fixing demand does not solve this problem.
+Fixing flow does.
+
+---
 
 ## About
 
-Built by **Tobou Egbekun** — Analytics Engineer & Financial Modeler
-Lagos, Nigeria | [LinkedIn](https://linkedin.com/in/tobouegbekun)
+Built by **Tobou Egbekun**
+Analytics Engineer & Financial Modeler
+Lagos, Nigeria
+[LinkedIn](https://linkedin.com/in/tobouegbekun)
